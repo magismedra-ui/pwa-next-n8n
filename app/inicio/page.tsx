@@ -3,17 +3,23 @@
 import { useEffect, useState } from "react";
 import { Box, Typography, Grid, Card, CardContent } from "@mui/material";
 import axios from "axios";
+import { useRouter } from "next/navigation";
+import { isTokenValid } from "../utils/auth";
 
-export default function ProductsPage() {
+export default function InicioPage() {
   const [products, setProducts] = useState<any[]>([]);
+  const router = useRouter();
 
   useEffect(() => {
-    const auth = localStorage.getItem("auth");
-    if (!auth) {
-      window.location.href = "/";
+    const { valid } = isTokenValid();
+
+    // CORRECTO: si NO es válido → login
+    if (!valid) {
+      router.replace("/");
       return;
     }
 
+    // Si es válido → cargar productos
     axios
       .get("/api/products")
       .then((res) => setProducts(res.data))
@@ -28,7 +34,9 @@ export default function ProductsPage() {
       <Grid container spacing={3}>
         {products.map((p) => (
           <Grid item xs={12} sm={6} md={4} key={p.id}>
-            <Card sx={{ borderRadius: 3, boxShadow: 4, ":hover": { boxShadow: 8 } }}>
+            <Card
+              sx={{ borderRadius: 3, boxShadow: 4, ":hover": { boxShadow: 8 } }}
+            >
               <CardContent>
                 <Typography variant="h6">{p.title}</Typography>
                 <Typography color="text.secondary">${p.price}</Typography>
@@ -40,3 +48,4 @@ export default function ProductsPage() {
     </Box>
   );
 }
+
