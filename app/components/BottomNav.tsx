@@ -10,10 +10,12 @@ import AssessmentIcon from "@mui/icons-material/Assessment";
 import CampaignIcon from "@mui/icons-material/Campaign";
 import AdminPanelSettingsIcon from "@mui/icons-material/AdminPanelSettings";
 import { usePathname, useRouter } from "next/navigation";
+import { isTokenValid } from "../utils/auth";
 
 export default function BottomNav() {
   const router = useRouter();
   const pathname = usePathname() || "/";
+  const [role, setRole] = React.useState<string | null>(null);
 
   const routes = ["/inicio", "/informes", "/publicadores", "/admin"];
 
@@ -36,6 +38,11 @@ export default function BottomNav() {
     router.push(routes[newValue]);
   };
 
+   React.useEffect(() => {
+    const { valid, payload } = isTokenValid();
+    if (valid) setRole(payload.role);
+  }, []);
+
   return (
     <Paper
   sx={{
@@ -48,7 +55,10 @@ export default function BottomNav() {
     <BottomNavigationAction label="Inicio" icon={<HomeIcon />} />
     <BottomNavigationAction label="Informes" icon={<AssessmentIcon />} />
     <BottomNavigationAction label="Publs" icon={<CampaignIcon />} />
-    <BottomNavigationAction label="Admin" icon={<AdminPanelSettingsIcon />} />
+    {/* Solo mostrar si es admin */}
+      {role === "Admin" && (
+        <BottomNavigationAction label="Admin" icon={<AdminPanelSettingsIcon />} />
+      )}
   </BottomNavigation>
 </Paper>
   );
