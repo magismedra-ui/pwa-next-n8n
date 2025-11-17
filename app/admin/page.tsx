@@ -21,40 +21,75 @@ import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import { DataGrid } from "@mui/x-data-grid";
 import { useState, useEffect } from "react";
+import axios from "axios";
+import { Backdrop, CircularProgress, Snackbar, Alert } from "@mui/material";
+import { useToast } from "../context/ToastContext";
+import { useLoading } from "../context/LoadingContext";
 
 const TABLES = [
-  { key: "role", label: "Roles" },
   { key: "publicador", label: "Publicadores" },
-  { key: "registro", label: "Registros" },
   { key: "usuario", label: "Usuarios" },
+  { key: "registro", label: "Registros" },
+  { key: "role", label: "Roles" },
   { key: "grupo", label: "Grupos" },
 ];
 
 export default function AdminPage() {
   const isMobile = useMediaQuery("(max-width: 768px)");
-
-  const [tab, setTab] = useState("role");
+  const [tab, setTab] = useState("publicadorrr");
   const [openMenu, setOpenMenu] = useState(false);
-
   const [data, setData] = useState<any[]>([]);
   const [form, setForm] = useState<any>({});
   const [openModal, setOpenModal] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [errorMsg, setErrorMsg] = useState("");
+  const [openError, setOpenError] = useState(false);
+  const { showLoading, hideLoading } = useLoading();
+    const { showToast } = useToast();
+
+  const token =
+    typeof window !== "undefined" ? localStorage.getItem("token") : null;
 
   // 🔥 Obtener datos desde N8N
   useEffect(() => {
-    setLoading(true);
+    //setLoading(true);
+    showLoading();
+    let data = JSON.stringify({
+      tabla: tab,
+    });
 
-    fetch("https://primary-production-e16cb.up.railway.app/webhook-test/auth", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ accion: tab }),
-    })
-      .then((res) => res.json())
-      .then((data) => setData(data || []))
-      .finally(() => setLoading(false));
+    let config = {
+      method: "post",
+      maxBodyLength: Infinity,
+      url: "https://primary-production-e16cb.up.railway.app/webhook-test/gestiondb",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: "Bearer " + token,
+      },
+      data: data,
+    };
+
+    axios
+      .request(config)
+      .then((response) => {
+        setData(response.data || []);
+        hideLoading();
+      })
+      .catch((error) => {
+        console.log("Error al obtener datos:", error?.response?.data || error);
+        setData([]);
+        hideLoading();
+        showToast(error.response?.data[0].message || "Verifica tu conexión a internet",
+        "error"
+      );
+      });
   }, [tab]);
+
+  const creadata = () => {
+    console.log("data", form);
+    console.log("tabla", tab);
+  };
 
   return (
     <Box
@@ -125,7 +160,15 @@ export default function AdminPage() {
         DRAWER MOBILE
       ───────────────────────────── */}
       <Drawer open={openMenu} onClose={() => setOpenMenu(false)}>
-        <Box sx={{ width: 250, backgroundColor: "#111827", height: "100%", color: "white", p: 2 }}>
+        <Box
+          sx={{
+            width: 250,
+            backgroundColor: "#111827",
+            height: "100%",
+            color: "white",
+            p: 2,
+          }}
+        >
           <Typography variant="h6" fontWeight="bold" sx={{ mb: 4 }}>
             Admin Panel
           </Typography>
@@ -260,9 +303,18 @@ export default function AdminPage() {
 
         <DialogActions>
           <Button onClick={() => setOpenModal(false)}>Cancelar</Button>
-          <Button variant="contained">Guardar</Button>
+          <Button variant="contained" onClick={creadata}>
+            Guardar
+          </Button>
         </DialogActions>
       </Dialog>
+      {/* LOADING GLOBAL */}
+      <Backdrop
+        sx={{ color: "#fff", zIndex: (theme) => theme.zIndex.drawer + 9999 }}
+        open={loading}
+      >
+        <CircularProgress color="inherit" />
+      </Backdrop>
     </Box>
   );
 }

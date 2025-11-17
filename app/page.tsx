@@ -12,20 +12,23 @@ import {
 } from "@mui/material";
 import { useState, useEffect } from "react";
 import { isTokenValid } from "./utils/auth";
+import { useLoading } from "./context/LoadingContext";
+import { useToast } from "./context/ToastContext";
 
 export default function LoginPage() {
   const router = useRouter();
+  const { showLoading, hideLoading } = useLoading();
+  const { showToast } = useToast();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
   const accion = "Login";
 
   const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setError("");
     setLoading(true);
+    showLoading();
 
     try {
       const response = await axios.post(
@@ -44,9 +47,13 @@ export default function LoginPage() {
         router.push("/inicio"); // redirige si quieres
       }
     } catch (err: any) {
-      setError(err.response?.data?.message || "Error al iniciar sesión");
+      showToast(
+        err.response?.data?.message || "Verifica tus credenciales",
+        "error"
+      );
     } finally {
       setLoading(false);
+      hideLoading();
     }
   };
 
