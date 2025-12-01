@@ -4,8 +4,6 @@ import { ThemeProvider } from "@mui/material/styles";
 import CssBaseline from "@mui/material/CssBaseline";
 import theme from "./libs/theme";
 import BottomNavWrapper from "./components/BottomNavWrapper";
-import Header from "./components/Header";
-import { usePathname } from "next/navigation";
 import ClientLayout from "./components/ClientLayout";
 
 export default function RootLayout({

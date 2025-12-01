@@ -4,6 +4,7 @@ import { ToastProvider } from "../context/ToastContext";
 import { usePathname } from "next/navigation";
 import Header from "./Header";
 import { LoadingProvider } from "../context/LoadingContext";
+import { useEffect } from "react";
 
 export default function ClientLayout({
   children,
@@ -12,6 +13,15 @@ export default function ClientLayout({
 }) {
   const pathname = usePathname();
   const hideHeader = pathname === "/";
+
+    useEffect(() => {
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker
+        .register("/sw.js")
+        .then(() => console.log("SW registrado"))
+        .catch((err) => console.error("SW error:", err));
+    }
+  }, []);
 
   return (
     <ToastProvider>
