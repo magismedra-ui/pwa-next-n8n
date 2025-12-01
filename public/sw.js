@@ -32,7 +32,11 @@ self.addEventListener("fetch", (event) => {
           })
           .catch(() => null);
 
-        return cached || (await networkFetch) || (await caches.match("/offline.html"));
+        return (
+          cached ||
+          (await networkFetch) ||
+          (await caches.match("/offline.html"))
+        );
       })()
     );
     return;
@@ -44,7 +48,10 @@ self.addEventListener("fetch", (event) => {
       .then((r) => r)
       .catch(async () => {
         const cache = await caches.open("pwa-static-v1");
-        return (await cache.match(event.request)) || (await cache.match("/offline.html"));
+        return (
+          (await cache.match(event.request)) ||
+          (await cache.match("/offline.html"))
+        );
       })
   );
 });
@@ -52,13 +59,17 @@ self.addEventListener("fetch", (event) => {
 self.addEventListener("sync", (event) => {
   if (event.tag === "sync-cambios") {
     event.waitUntil(
-      self.registration.fetch && fetch("/api/sync-pending", { method: "POST" }).catch(()=>{})
+      fetch("/api/sync-pending", { method: "POST" }).catch(() => {})
     );
   }
 });
 
 self.addEventListener("message", (event) => {
   if (event.data && event.data.type === "TRIGGER_SYNC") {
-    self.registration.sync && self.registration.sync.register("sync-cambios").catch(()=>{});
+    if (self.registration.sync) {
+      self.registration.sync.register("sync-cambios").catch(() => {});
+    } else {
+      fetch("/api/sync-pending", { method: "POST" }).catch(() => {});
+    }
   }
 });
